@@ -1,6 +1,6 @@
 {
     "name": "use-pwa-install-prompt",
-    "version": "1.0.0",
+    "version": "1.0.1",
     "description": "提供 pwa 应用主动安装能力",
     "keywords": [
         "pwa install"
@@ -38,8 +38,8 @@
         "format": "prettier -c prettier.config.json -w **.ts **.md **.json"
     },
     "devDependencies": {
-        "unbuild": "^2.0.0",
-        "typescript": "^5.4.5"
+        "typescript": "^5.4.5",
+        "unbuild": "^2.0.0"
     },
     "dependencies": {}
 }
