@@ -6,6 +6,7 @@ var EInstallState = /* @__PURE__ */ ((EInstallState2) => {
   EInstallState2["installed"] = "installed";
   return EInstallState2;
 })(EInstallState || {});
+const LOCAL_CACHE_KEY = "pwa-install-flag";
 let deferredPrompt = void 0;
 let firstTouchTime = void 0;
 const listenFirstTouch = () => {
@@ -23,6 +24,7 @@ const registerPWA = () => {
     deferredPrompt = ev;
   });
   window.addEventListener("appinstalled", () => {
+    localStorage.setItem(LOCAL_CACHE_KEY, "1");
     deferredPrompt = null;
   });
   listenFirstTouch();
@@ -31,6 +33,10 @@ const pwaInstallIsReady = () => {
   if (!!deferredPrompt)
     return "ready" /* ready */;
   if (Date.now() - window.performance.timeOrigin > 32 * 1e3 && !!firstTouchTime) {
+    localStorage.setItem(LOCAL_CACHE_KEY, "1");
+    return "installed" /* installed */;
+  }
+  if (Date.now() - window.performance.timeOrigin > 2 * 1e3 && localStorage.getItem(LOCAL_CACHE_KEY)) {
     return "installed" /* installed */;
   }
   return "unready" /* unready */;
@@ -56,26 +62,40 @@ const usePWAInstallPrompt = async (options) => {
     const { outcome } = await deferredPrompt.userChoice;
     deferredPrompt = void 0;
     if (outcome === "accepted") {
+      localStorage.setItem(LOCAL_CACHE_KEY, "1");
       return true;
     } else {
       return false;
     }
   } else if (status === "unready" /* unready */ && options.delay) {
-    const delayTime = Date.now() - (window.performance.timeOrigin + 32 * 1e3);
+    const delayTime = window.performance.timeOrigin + 32 * 1e3 - Date.now();
     if (delayTime < 0)
       return false;
     options.loading?.(true);
-    const res = await loopTask(() => {
-      return pwaInstallIsReady() === "ready" /* ready */;
-    }, 32 * 1e3);
+    const res = await loopTask(
+      () => {
+        return pwaInstallIsReady() === "ready" /* ready */;
+      },
+      localStorage.getItem(LOCAL_CACHE_KEY) ? 2 * 1e3 : 32 * 1e3
+    );
     options.loading?.(false);
     if (res)
       return usePWAInstallPrompt(options);
   }
   return false;
 };
+const inPWA = () => {
+  const isStandalone = window.matchMedia("(display-mode: standalone)").matches;
+  if (document.referrer.startsWith("android-app://")) {
+    return "twa";
+  } else if (navigator["standalone"] || isStandalone) {
+    return "standalone";
+  }
+  return "browser";
+};
 
 exports.EInstallState = EInstallState;
+exports.inPWA = inPWA;
 exports.pwaInstallIsReady = pwaInstallIsReady;
 exports.registerPWA = registerPWA;
 exports.usePWAInstallPrompt = usePWAInstallPrompt;

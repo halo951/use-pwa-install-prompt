@@ -1,4 +1,4 @@
-# use-pwa-install-prompt
+\*\*\*\*# use-pwa-install-prompt
 
 ## About
 
@@ -6,13 +6,21 @@
 
 -   `参考资料` https://web.dev/articles/install-criteria?hl=zh-cn#criteria
 
+-   `判定规则`
+
+    首先, 遵循 google 的规则, 当用户在页面停留够 30s, 且有一次点击行为才可以安装 pwa
+    关于是否安装过的判定, 如果用户安装过, 会在 localStorage 中标记一个 `pwa-install-flag` 值, 当存在此值时, 如果超过 2s 未收到 `beforeinstallprompt` 事件, 将判定当前应用已经被安装过了
+    否则, 如果超过 32s(+2s 容错时间)没有收到`beforeinstallprompt`事件, 则判定用户安装过 (或当前浏览器不支持)
+
 ## Api 说明
 
-| Method              | Description                                                                          |
-| :------------------ | :----------------------------------------------------------------------------------- |
-| registerPWA         | 注册使用 pwa 安装的前置事件 (在应用启动前执行)                                       |
-| pwaInstallIsReady   | 判断 pwa 安装程序是否已经就绪 (可以结合 vue 的 watch, react 的 useMemo 修改成响应式) |
-| usePWAInstallPrompt | 调用浏览器的 pwa install 程序, 触发 pwa 安装操作                                     |
+| Method                   | Description                                      |
+| :----------------------- | :----------------------------------------------- |
+| registerPWA              | 注册使用 pwa 安装的前置事件 (在应用启动前执行)   |
+| pwaInstallIsReady        | 判断 pwa 安装程序是否已经就绪                    |
+| usePWAInstallPrompt      | 调用浏览器的 pwa install 程序, 触发 pwa 安装操作 |
+| addPwaInstallListener    | 添加 pwa 安装程序状态变化监听                    |
+| removePwaInstallListener | 移除 pwa 安装程序状态变化监听                    |
 
 ## Usage
 
@@ -35,32 +43,53 @@ createRoot(App).mount('#app')
 
 ```vue
 <script lang="ts">
-import { Ref, ref } from 'vue'
-import { pwaInstallIsReady, EInstallState, usePWAInstallPrompt } from 'use-pwa-install-prompt'
+import { Ref, ref, onMounted, onBeforeUnmount } from 'vue'
+import { pwaInstallIsReady, EInstallState, usePWAInstallPrompt, inPWA } from 'use-pwa-install-prompt'
 
-/** 是否允许安装 */
-const allowInstall: Ref<boolean> = useMemo(() => {
-    return pwaInstallIsReady() === EInstallState.ready
-}, [pwaInstallIsReady()])
-
-/** loading状态 */
+const state: Ref<EInstallState> = ref(EInstallState.unready)
 const loading: Ref<boolean> = ref(false)
+const online: Ref<boolean> = ref(navigator.onLine)
+let timer: any
+
+const install = async (): Promise<boolean> => {
+    const res = await usePWAInstallPrompt({
+        delay: true,
+        loading: (state) => (loading.value = state)
+    })
+    if (res) {
+        console.log('已安装')
+    } else {
+        console.log('用户取消/已经安装过')
+    }
+    // location.href = '/home'
+    console.log('模拟跳转到首页')
+    return res
+}
+
+onMounted(() => {
+    state.value = pwaInstallIsReady()
+    timer = setInterval(() => {
+        state.value = pwaInstallIsReady()
+    }, 1000)
+    window.addEventListener('online', () => {
+        online.value = true
+    })
+    window.addEventListener('offline', () => {
+        online.value = false
+    })
+})
+
+onBeforeUnmount(() => {
+    clearInterval(timer)
+})
 </script>
 <template>
-    <!-- ... -->
-    <!-- 方式1：在 pwa install 就绪后展示安装按钮 -->
-    <Button v-if="allowInstall" @click="usePWAInstallPrompt">安装</Button>
-    <!-- 方式2：用户按下按钮后展示loading -->
-    <LoadingComponent v-if="loading" />
-    <Button
-        @click="
-            () =>
-                usePWAInstallPrompt({
-                    delay: true,
-                    loading: (state) => (loading = state)
-                })
-        "
-        >安装</Button
-    >
+    <p>Loading 状态: {{ loading }}</p>
+    <p>安装状态: {{ state }}</p>
+    <p>在线状态: {{ online }}</p>
+    <p>运行环境: {{ inPWA() }}</p>
+    <p>
+        <button @click="install">安装/唤起</button>
+    </p>
 </template>
 ```

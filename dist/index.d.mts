@@ -34,5 +34,6 @@ interface IUsePWAInstallPromptOptions {
  * @returns
  */
 declare const usePWAInstallPrompt: (options: IUsePWAInstallPromptOptions) => Promise<boolean>;
+declare const inPWA: () => "twa" | "standalone" | "browser";
 
-export { EInstallState, type IUsePWAInstallPromptOptions, pwaInstallIsReady, registerPWA, usePWAInstallPrompt };
+export { EInstallState, type IUsePWAInstallPromptOptions, inPWA, pwaInstallIsReady, registerPWA, usePWAInstallPrompt };

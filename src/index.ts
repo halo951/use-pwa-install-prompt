@@ -7,6 +7,7 @@ export enum EInstallState {
     installed = 'installed'
 }
 
+const LOCAL_CACHE_KEY: string = 'pwa-install-flag'
 /** pwa 安装弹窗引用 */
 let deferredPrompt: any | undefined = undefined
 /** 用户首次在页面上点击或点按的时间 */
@@ -31,6 +32,7 @@ export const registerPWA = (): void => {
     })
 
     window.addEventListener('appinstalled', (): void => {
+        localStorage.setItem(LOCAL_CACHE_KEY, '1')
         deferredPrompt = null
     })
 
@@ -48,6 +50,11 @@ export const pwaInstallIsReady = (): EInstallState => {
     if (!!deferredPrompt) return EInstallState.ready
     // Tips: 补2s延时, 避免极限情况
     if (Date.now() - window.performance.timeOrigin > 32 * 1000 && !!firstTouchTime) {
+        localStorage.setItem(LOCAL_CACHE_KEY, '1')
+        return EInstallState.installed
+    }
+    // ? 如果进入页面时间超过2s, 并且ls中有安装过的标记, 那么就跳过等待, 指示用户已安装
+    if (Date.now() - window.performance.timeOrigin > 2 * 1000 && localStorage.getItem(LOCAL_CACHE_KEY)) {
         return EInstallState.installed
     }
     return EInstallState.unready
@@ -100,6 +107,7 @@ export const usePWAInstallPrompt = async (options: IUsePWAInstallPromptOptions):
         deferredPrompt = undefined
         // ? 是否已安装
         if (outcome === 'accepted') {
+            localStorage.setItem(LOCAL_CACHE_KEY, '1')
             // > 用户安装
             return true
         } else {
@@ -110,17 +118,30 @@ export const usePWAInstallPrompt = async (options: IUsePWAInstallPromptOptions):
     // ? 如果安装程序未就绪, 判断是否需要等待, 如需等待, 等待官方的触发条件完成后, 再返回失败结果
     else if (status === EInstallState.unready && options.delay) {
         // @  计算等待时间, 如果超时表明失败(一般为安装过了)
-        const delayTime: number = Date.now() - (window.performance.timeOrigin + 32 * 1000)
+        const delayTime: number = window.performance.timeOrigin + 32 * 1000 - Date.now()
         if (delayTime < 0) return false
         // > 延时函数
         options.loading?.(true)
-        const res: boolean = await loopTask(() => {
-            return pwaInstallIsReady() === EInstallState.ready
-        }, 32 * 1000)
+        const res: boolean = await loopTask(
+            () => {
+                return pwaInstallIsReady() === EInstallState.ready
+            },
+            localStorage.getItem(LOCAL_CACHE_KEY) ? 2 * 1000 : 32 * 1000
+        )
         options.loading?.(false)
         // > retry
         if (res) return usePWAInstallPrompt(options)
     }
     // ?否则, 如果已经安装过或未设置等待的, 返回失败
     return false
+}
+
+export const inPWA = (): 'twa' | 'standalone' | 'browser' => {
+    const isStandalone = window.matchMedia('(display-mode: standalone)').matches
+    if (document.referrer.startsWith('android-app://')) {
+        return 'twa'
+    } else if ((navigator as any)['standalone'] || isStandalone) {
+        return 'standalone'
+    }
+    return 'browser'
 }
