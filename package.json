@@ -1,0 +1,45 @@
+{
+    "name": "use-pwa-install-prompt",
+    "version": "1.0.0",
+    "description": "提供 pwa 应用主动安装能力",
+    "keywords": [
+        "pwa install"
+    ],
+    "license": "MIT",
+    "author": {
+        "name": "halo951",
+        "url": "https://github.com/halo951"
+    },
+    "repository": {
+        "type": "git",
+        "url": "https://github.com/halo951/use-pwa-install-prompt.git"
+    },
+    "bugs": {
+        "url": "https://github.com/halo951/use-pwa-install-prompt/issues"
+    },
+    "sideEffects": false,
+    "files": [
+        "src",
+        "dist"
+    ],
+    "main": "dist/index.cjs",
+    "module": "dist/index.mjs",
+    "typings": "dist/index.d.ts",
+    "exports": {
+        ".": {
+            "types": "./dist/index.d.ts",
+            "require": "./dist/index.cjs",
+            "import": "./dist/index.mjs"
+        }
+    },
+    "scripts": {
+        "type-check": "vue-tsc --noEmit -p tsconfig.json --composite false",
+        "build": "unbuild",
+        "format": "prettier -c prettier.config.json -w **.ts **.md **.json"
+    },
+    "devDependencies": {
+        "unbuild": "^2.0.0",
+        "typescript": "^5.4.5"
+    },
+    "dependencies": {}
+}
