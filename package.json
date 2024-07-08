@@ -1,6 +1,6 @@
 {
     "name": "use-pwa-install-prompt",
-    "version": "1.0.1",
+    "version": "1.0.2",
     "description": "提供 pwa 应用主动安装能力",
     "keywords": [
         "pwa install"
