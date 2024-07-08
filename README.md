@@ -1,4 +1,4 @@
-\*\*\*\*# use-pwa-install-prompt
+# use-pwa-install-prompt
 
 ## About
 
@@ -19,8 +19,6 @@
 | registerPWA              | 注册使用 pwa 安装的前置事件 (在应用启动前执行)   |
 | pwaInstallIsReady        | 判断 pwa 安装程序是否已经就绪                    |
 | usePWAInstallPrompt      | 调用浏览器的 pwa install 程序, 触发 pwa 安装操作 |
-| addPwaInstallListener    | 添加 pwa 安装程序状态变化监听                    |
-| removePwaInstallListener | 移除 pwa 安装程序状态变化监听                    |
 
 ## Usage
 
