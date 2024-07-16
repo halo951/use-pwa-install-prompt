@@ -8,9 +8,11 @@
 
 -   `判定规则`
 
-    首先, 遵循 google 的规则, 当用户在页面停留够 30s, 且有一次点击行为才可以安装 pwa
-    关于是否安装过的判定, 如果用户安装过, 会在 localStorage 中标记一个 `pwa-install-flag` 值, 当存在此值时, 如果超过 2s 未收到 `beforeinstallprompt` 事件, 将判定当前应用已经被安装过了
-    否则, 如果超过 32s(+2s 容错时间)没有收到`beforeinstallprompt`事件, 则判定用户安装过 (或当前浏览器不支持)
+> 首先, 遵循 google 的规则, 当用户在页面停留够 30s, 且有一次点击行为才可以安装 pwa.
+> 
+> 关于是否安装过的判定, 如果用户安装过, 会在 localStorage 中标记一个 `pwa-install-flag` 值, 当存在此值时, 如果超过 2s 未收到 `beforeinstallprompt` 事件, 将判定当前应用已经被安装过了
+> 
+> 否则, 如果超过 32s(+2s 容错时间)没有收到`beforeinstallprompt`事件, 则判定用户安装过 (或当前浏览器不支持)
 
 ## Api 说明
 

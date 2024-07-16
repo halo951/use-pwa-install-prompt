@@ -25,8 +25,10 @@ const listenFirstTouch = (): void => {
 }
 
 /** 注册 pwa 事件监听器 */
-export const registerPWA = (): void => {
+export const registerPWA = (debug?: boolean): void => {
+    if (debug) console.log('register beforeinstallprompt listener')
     window.addEventListener('beforeinstallprompt', (ev: Event): void => {
+        if (debug) console.log('receive beforeinstallprompt event')
         ev.preventDefault()
         deferredPrompt = ev
     })
